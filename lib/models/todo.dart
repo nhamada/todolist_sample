@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class Todo {
   final int id;
   final String name;
@@ -7,11 +9,11 @@ class Todo {
 
   bool done = false;
 
-  Todo({this.id,
-        this.name,
+  Todo({@required this.id,
+        @required this.name,
         this.description,
-        this.startTime,
-        this.endTime}
+        @required this.startTime,
+        @required this.endTime}
       ) : assert(id != null && id >= 0),
           assert(name != null && name.length > 0),
           assert(startTime != null),
