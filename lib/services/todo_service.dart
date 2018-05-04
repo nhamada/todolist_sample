@@ -9,15 +9,15 @@ enum TodoServiceSource {
 }
 
 abstract class TodoService {
-  Future<List<Todo>> list();
+  Future<List<Todo>> list([int page = 0]);
   Future<Todo> add({String name, String description, DateTime startDate, DateTime endDate});
   Future<Todo> update({int id, String name, String description, DateTime startDate, DateTime endDate});
   Future<bool> remove(int id);
 
-  factory TodoService({TodoServiceSource source}) {
+  factory TodoService({TodoServiceSource source, int pagingCount}) {
     switch (source) {
       case TodoServiceSource.dummy:
-        return new _DummyTodoService();
+        return new _DummyTodoService(pagingCount: pagingCount);
       case TodoServiceSource.localStorage:
         // TODO: Implement local storage service
         return new _DummyTodoService();
@@ -28,15 +28,24 @@ abstract class TodoService {
 class _DummyTodoService implements TodoService {
   List<Todo> _todos;
 
-  Future<List<Todo>> list() async {
+  final int pagingCount;
+
+  _DummyTodoService({this.pagingCount}) {
+    _todos = _generateDummies(65);
+  }
+
+  Future<List<Todo>> list([int page = 0]) async {
+    assert(page >= 0);
     await new Future.delayed(new Duration(seconds: 5));
-    var temp = _generateDummies();
-    if (_todos == null) {
-      _todos = temp;
-    } else {
-      _todos.addAll(temp);
+    var startIndex = page * pagingCount;
+    var endIndex = (page + 1) * pagingCount;
+    if (startIndex >= _todos.length) {
+      return new List();
     }
-    return temp;
+    if (_todos.length < endIndex) {
+      return _todos.sublist(startIndex);
+    }
+    return _todos.sublist(startIndex, endIndex);
   }
 
   Future<Todo> add({String name, String description, DateTime startDate, DateTime endDate}) async {
@@ -80,8 +89,8 @@ class _DummyTodoService implements TodoService {
     return (itemIndex >= 0);
   }
 
-  List<Todo> _generateDummies() {
-    var dummies = new List.generate(20, (index) {
+  List<Todo> _generateDummies(int length) {
+    var dummies = new List.generate(length, (index) {
       var newIndex = index + (_todos != null ? _todos.length : 0);
       return new Todo(
         id: newIndex,

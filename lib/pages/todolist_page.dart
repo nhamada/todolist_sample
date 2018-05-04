@@ -8,7 +8,10 @@ import 'package:todolist_sample/services/todo_service.dart';
 class TodoListPage extends StatelessWidget {
   final String title;
 
-  final TodoService _todoService = new TodoService(source: TodoServiceSource.dummy);
+  static final int pagingCount = 20;
+
+  final TodoService _todoService = new TodoService(source: TodoServiceSource.dummy,
+                                                   pagingCount: pagingCount);
 
   TodoListPage({Key key, this.title}) : super(key: key);
 
@@ -63,19 +66,27 @@ class _TodoListViewState extends State<_TodoListView> {
 
   bool _loading = false;
   bool _listCompleted = false;
+  int _currentPage = 0;
 
-  _TodoListViewState({this.todos}) : assert(todos != null);
+  _TodoListViewState({this.todos}) : assert(todos != null) {
+    if (TodoListPage.pagingCount > todos.length) {
+      _listCompleted = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return new ListView.builder(
       itemBuilder: (context, index) {
         if (index >= todos.length) {
-          if (!_loading) {
-            _loading = true;
-            _requestTodos();
+          if (_listCompleted) {
+            return null;
           }
           if (index == todos.length) {
+            if (!_loading) {
+              _loading = true;
+              _requestTodos();
+            }
             return new ListTile(
               title: new Center(child: new CircularProgressIndicator()),
             );
@@ -98,17 +109,16 @@ class _TodoListViewState extends State<_TodoListView> {
   }
 
   _requestTodos() async {
-    if (_listCompleted) return;
+    List<Todo> newList = await widget.todoService.list(_currentPage + 1);
+    _currentPage += 1;
+    _listCompleted = newList.length < TodoListPage.pagingCount;
 
-    List<Todo> newList = await widget.todoService.list();
-    _listCompleted = newList.isEmpty;
-
+    _loading = false;
     if (newList.isEmpty) {
       return;
     }
     setState(() {
       todos.addAll(newList);
-      _loading = false;
     });
   }
 }
