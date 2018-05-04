@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:todolist_sample/models/todo.dart';
 import 'package:todolist_sample/pages/todo_edit_page.dart';
+import 'package:todolist_sample/services/todo_service.dart';
 
 class TodoDetailPage extends StatelessWidget {
   final Todo todo;
+  final TodoService todoService;
 
-  TodoDetailPage({Key key, this.todo}) : super(key: key);
+  TodoDetailPage({Key key, this.todo, this.todoService}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class TodoDetailPage extends StatelessWidget {
               Navigator.push(
                 context,
                 new MaterialPageRoute(
-                  builder: (context) => new TodoEditPage(editMode: TodoEditMode.editTodo),
+                  builder: (context) => new TodoEditPage(todo: todo, todoService: todoService),
                   fullscreenDialog: true,
                 ),
               );

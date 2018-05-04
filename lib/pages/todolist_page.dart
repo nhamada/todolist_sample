@@ -24,7 +24,7 @@ class TodoListPage extends StatelessWidget {
               Navigator.push(
                 context,
                 new MaterialPageRoute(
-                  builder: (context) => new TodoEditPage(editMode: TodoEditMode.newTodo),
+                  builder: (context) => new TodoEditPage(todoService: _todoService),
                   fullscreenDialog: true,
                 ),
               );
@@ -89,7 +89,7 @@ class _TodoListViewState extends State<_TodoListView> {
             Navigator.push(
               context,
               new MaterialPageRoute(builder: (context) =>
-                new TodoDetailPage(todo: todos[index]))
+                new TodoDetailPage(todo: todos[index], todoService: widget.todoService))
             );
           },
         );
