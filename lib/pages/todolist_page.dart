@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:todolist_sample/models/todo.dart';
@@ -66,7 +68,6 @@ class _TodoListViewState extends State<_TodoListView> {
 
   bool _loading = false;
   bool _listCompleted = false;
-  int _currentPage = 0;
 
   _TodoListViewState({this.todos}) : assert(todos != null) {
     if (TodoListPage.pagingCount > todos.length) {
@@ -76,41 +77,44 @@ class _TodoListViewState extends State<_TodoListView> {
 
   @override
   Widget build(BuildContext context) {
-    return new ListView.builder(
-      itemBuilder: (context, index) {
-        if (index >= todos.length) {
-          if (_listCompleted) {
-            return null;
-          }
-          if (index == todos.length) {
-            if (!_loading) {
-              _loading = true;
-              _requestTodos();
+    return new RefreshIndicator(
+      onRefresh: _requestNewTodos,
+      child: new ListView.builder(
+        physics: new AlwaysScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          if (index >= todos.length) {
+            if (_listCompleted) {
+              return null;
             }
-            return new ListTile(
-              title: new Center(child: new CircularProgressIndicator()),
-            );
-          } else {
-            return null;
+            if (index == todos.length) {
+              if (!_loading) {
+                _loading = true;
+                _requestTodos();
+              }
+              return new ListTile(
+                title: new Center(child: new CircularProgressIndicator()),
+              );
+            } else {
+              return null;
+            }
           }
-        }
-        return new ListTile(
-          title: new Text(todos[index].name),
-          onTap: () {
-            Navigator.push(
-              context,
-              new MaterialPageRoute(builder: (context) =>
-                new TodoDetailPage(todo: todos[index], todoService: widget.todoService))
-            );
-          },
-        );
-      },
+          return new ListTile(
+            title: new Text(todos[index].name),
+            onTap: () {
+              Navigator.push(
+                context,
+                new MaterialPageRoute(builder: (context) =>
+                  new TodoDetailPage(todo: todos[index], todoService: widget.todoService))
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   _requestTodos() async {
-    List<Todo> newList = await widget.todoService.list(_currentPage + 1);
-    _currentPage += 1;
+    List<Todo> newList = await widget.todoService.listBefore(beforeId: todos.last.id);
     _listCompleted = newList.length < TodoListPage.pagingCount;
 
     _loading = false;
@@ -119,6 +123,17 @@ class _TodoListViewState extends State<_TodoListView> {
     }
     setState(() {
       todos.addAll(newList);
+    });
+  }
+
+  Future<Null> _requestNewTodos() async {
+    var completer = new Completer();
+    var newList = await widget.todoService.listSince(sinceId: todos.first.id);
+    completer.complete(null);
+    return completer.future.then((_) {
+      setState(() {
+        todos.insertAll(0, newList);
+      });
     });
   }
 }

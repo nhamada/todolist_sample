@@ -9,7 +9,9 @@ enum TodoServiceSource {
 }
 
 abstract class TodoService {
-  Future<List<Todo>> list([int page = 0]);
+  Future<List<Todo>> list({int page = 0});
+  Future<List<Todo>> listSince({int sinceId, int page = 0});
+  Future<List<Todo>> listBefore({int beforeId, int page = 0});
   Future<Todo> add({String name, String description, DateTime startDate, DateTime endDate});
   Future<Todo> update({int id, String name, String description, DateTime startDate, DateTime endDate});
   Future<bool> remove(int id);
@@ -34,18 +36,55 @@ class _DummyTodoService implements TodoService {
     _todos = _generateDummies(65);
   }
 
-  Future<List<Todo>> list([int page = 0]) async {
+  Future<List<Todo>> list({int page = 0}) async {
     assert(page >= 0);
     await new Future.delayed(new Duration(seconds: 5));
+    var sorted = _todos.toList();
+    sorted.sort((item1, item2) => item2.id.compareTo(item1.id));
+
     var startIndex = page * pagingCount;
     var endIndex = (page + 1) * pagingCount;
-    if (startIndex >= _todos.length) {
+    if (startIndex >= sorted.length) {
       return new List();
     }
-    if (_todos.length < endIndex) {
-      return _todos.sublist(startIndex);
+    if (sorted.length < endIndex) {
+      return sorted.sublist(startIndex);
     }
-    return _todos.sublist(startIndex, endIndex);
+    return sorted.sublist(startIndex, endIndex);
+  }
+
+  Future<List<Todo>> listSince({int sinceId, int page = 0}) async {
+    assert(page >= 0);
+    await new Future.delayed(new Duration(seconds: 5));
+    var sorted = _todos.where((todo) => sinceId < todo.id).toList();
+    sorted.sort((item1, item2) => item2.id.compareTo(item1.id));
+
+    var startIndex = page * pagingCount;
+    var endIndex = (page + 1) * pagingCount;
+    if (startIndex >= sorted.length) {
+      return new List();
+    }
+    if (sorted.length < endIndex) {
+      return sorted.sublist(startIndex);
+    }
+    return sorted.sublist(startIndex, endIndex);
+  }
+
+  Future<List<Todo>> listBefore({int beforeId, int page = 0}) async {
+    assert(page >= 0);
+    await new Future.delayed(new Duration(seconds: 5));
+    var sorted = _todos.where((todo) => todo.id < beforeId).toList();
+    sorted.sort((item1, item2) => item2.id.compareTo(item1.id));
+
+    var startIndex = page * pagingCount;
+    var endIndex = (page + 1) * pagingCount;
+    if (startIndex >= sorted.length) {
+      return new List();
+    }
+    if (sorted.length < endIndex) {
+      return sorted.sublist(startIndex);
+    }
+    return sorted.sublist(startIndex, endIndex);
   }
 
   Future<Todo> add({String name, String description, DateTime startDate, DateTime endDate}) async {
@@ -91,7 +130,7 @@ class _DummyTodoService implements TodoService {
 
   List<Todo> _generateDummies(int length) {
     var dummies = new List.generate(length, (index) {
-      var newIndex = index + (_todos != null ? _todos.length : 0);
+      var newIndex = index + (_todos != null ? _todos.length + 1 : 1);
       return new Todo(
         id: newIndex,
         name: 'TODO #$newIndex',
