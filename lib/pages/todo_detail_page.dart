@@ -57,7 +57,7 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
 
         if (snapshot.hasData) {
           _todo = snapshot.data;
-          return _buildTodoDetail(_todo);
+          return _buildTodoDetail(context, _todo);
         } else {
           return new Center(child: new CircularProgressIndicator());
         }
@@ -65,12 +65,18 @@ class _TodoDetailPageState extends State<TodoDetailPage> {
     );
   }
 
-  Widget _buildTodoDetail(Todo todo) {
+  Widget _buildTodoDetail(BuildContext context, Todo todo) {
     return new SafeArea(
       child: new Padding(
         padding: new EdgeInsets.all(16.0),
         child: new Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            new Text(
+              todo.name,
+              style: Theme.of(context).textTheme.title,
+            ),
+            new Divider(),
             new Text(
               todo.description,
             ),
