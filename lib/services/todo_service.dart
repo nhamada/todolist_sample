@@ -9,6 +9,7 @@ enum TodoServiceSource {
 }
 
 abstract class TodoService {
+  Future<Todo> get(int id);
   Future<List<Todo>> list({int page = 0});
   Future<List<Todo>> listSince({int sinceId, int page = 0});
   Future<List<Todo>> listBefore({int beforeId, int page = 0});
@@ -24,6 +25,7 @@ abstract class TodoService {
         // TODO: Implement local storage service
         return new _DummyTodoService();
     }
+    return null;
   }
 }
 
@@ -34,6 +36,13 @@ class _DummyTodoService implements TodoService {
 
   _DummyTodoService({this.pagingCount}) {
     _todos = _generateDummies(65);
+  }
+
+  Future<Todo> get(int id) async {
+    assert(id >= 0);
+    await new Future.delayed(new Duration(seconds: 5));
+    var todo = _todos.toList().firstWhere((todo) => todo.id == id);
+    return todo;
   }
 
   Future<List<Todo>> list({int page = 0}) async {
