@@ -104,7 +104,7 @@ class _TodoListViewState extends State<_TodoListView> {
               Navigator.push(
                 context,
                 new MaterialPageRoute(builder: (context) =>
-                  new TodoDetailPage(todo: todos[index], todoService: widget.todoService))
+                  new TodoDetailPage(todoId: todos[index].id, todoService: widget.todoService))
               );
             },
           );
